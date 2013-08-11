@@ -1,8 +1,12 @@
 
+// PluginLua.cpp
+
+// Implements the cPluginLua class representing a plugin written in Lua
+
 #include "Globals.h"  // NOTE: MSVC stupidness requires this to be the same across all modules
 
 #define LUA_USE_POSIX
-#include "Plugin_NewLua.h"
+#include "PluginLua.h"
 #include "CommandOutput.h"
 
 extern "C"
@@ -243,6 +247,66 @@ bool cPlugin_NewLua::OnExecuteCommand(cPlayer * a_Player, const AStringVector & 
 	cCSLock Lock(m_CriticalSection);
 	bool res = false;
 	m_LuaState.Call(GetHookFnName(cPluginManager::HOOK_EXECUTE_COMMAND), a_Player, a_Split, cLuaState::Return, res);
+	return res;
+}
+
+
+
+
+
+bool cPlugin_NewLua::OnExploded(cWorld & a_World, double a_ExplosionSize, bool a_CanCauseFire, double a_X, double a_Y, double a_Z, eExplosionSource a_Source, void * a_SourceData)
+{
+	cCSLock Lock(m_CriticalSection);
+	bool res = false;
+	const char * FnName = GetHookFnName(cPluginManager::HOOK_EXPLODED);
+	switch (a_Source)
+	{
+		case esOther:            m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData,               cLuaState::Return, res); break;
+		case esPrimedTNT:        m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, (cTNTEntity *)a_SourceData, cLuaState::Return, res); break;
+		case esCreeper:          m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, (cCreeper *)a_SourceData,   cLuaState::Return, res); break;
+		case esBed:              m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, (Vector3i *)a_SourceData,   cLuaState::Return, res); break;
+		case esEnderCrystal:     m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, (Vector3i *)a_SourceData,   cLuaState::Return, res); break;
+		case esGhastFireball:    m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData,               cLuaState::Return, res); break;
+		case esWitherSkullBlack:
+		case esWitherSkullBlue:  m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData, cLuaState::Return, res); break;
+		case esWitherBirth:      m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData, cLuaState::Return, res); break;
+		case esPlugin:           m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData, cLuaState::Return, res); break;
+		default:
+		{
+			ASSERT(!"Unhandled ExplosionSource");
+			return false;
+		}
+	}
+	return res;
+}
+
+
+
+
+
+bool cPlugin_NewLua::OnExploding(cWorld & a_World, double & a_ExplosionSize, bool & a_CanCauseFire, double a_X, double a_Y, double a_Z, eExplosionSource a_Source, void * a_SourceData)
+{
+	cCSLock Lock(m_CriticalSection);
+	bool res = false;
+	const char * FnName = GetHookFnName(cPluginManager::HOOK_EXPLODING);
+	switch (a_Source)
+	{
+		case esOther:            m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData,               cLuaState::Return, res, a_CanCauseFire, a_ExplosionSize); break;
+		case esPrimedTNT:        m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, (cTNTEntity *)a_SourceData, cLuaState::Return, res, a_CanCauseFire, a_ExplosionSize); break;
+		case esCreeper:          m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, (cCreeper *)a_SourceData,   cLuaState::Return, res, a_CanCauseFire, a_ExplosionSize); break;
+		case esBed:              m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, (Vector3i *)a_SourceData,   cLuaState::Return, res, a_CanCauseFire, a_ExplosionSize); break;
+		case esEnderCrystal:     m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, (Vector3i *)a_SourceData,   cLuaState::Return, res, a_CanCauseFire, a_ExplosionSize); break;
+		case esGhastFireball:    m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData,               cLuaState::Return, res, a_CanCauseFire, a_ExplosionSize); break;
+		case esWitherSkullBlack:
+		case esWitherSkullBlue:  m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData,               cLuaState::Return, res, a_CanCauseFire, a_ExplosionSize); break;
+		case esWitherBirth:      m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData,               cLuaState::Return, res, a_CanCauseFire, a_ExplosionSize); break;
+		case esPlugin:           m_LuaState.Call(FnName, &a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData,               cLuaState::Return, res, a_CanCauseFire, a_ExplosionSize); break;
+		default:
+		{
+			ASSERT(!"Unhandled ExplosionSource");
+			return false;
+		}
+	}
 	return res;
 }
 

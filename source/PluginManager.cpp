@@ -3,7 +3,7 @@
 
 #include "PluginManager.h"
 #include "Plugin.h"
-#include "Plugin_NewLua.h"
+#include "PluginLua.h"
 #include "WebAdmin.h"
 #include "Item.h"
 #include "Root.h"
@@ -415,6 +415,48 @@ bool cPluginManager::CallHookExecuteCommand(cPlayer * a_Player, const AStringVec
 	for (PluginList::iterator itr = Plugins->second.begin(); itr != Plugins->second.end(); ++itr)
 	{
 		if ((*itr)->OnExecuteCommand(a_Player, a_Split))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
+
+
+bool cPluginManager::CallHookExploded(cWorld & a_World, double a_ExplosionSize, bool a_CanCauseFire, double a_X, double a_Y, double a_Z, eExplosionSource a_Source, void * a_SourceData)
+{
+	HookMap::iterator Plugins = m_Hooks.find(HOOK_EXPLODED);
+	if (Plugins == m_Hooks.end())
+	{
+		return false;
+	}
+	for (PluginList::iterator itr = Plugins->second.begin(); itr != Plugins->second.end(); ++itr)
+	{
+		if ((*itr)->OnExploded(a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
+
+
+bool cPluginManager::CallHookExploding(cWorld & a_World, double & a_ExplosionSize, bool & a_CanCauseFire, double a_X, double a_Y, double a_Z, eExplosionSource a_Source, void * a_SourceData)
+{
+	HookMap::iterator Plugins = m_Hooks.find(HOOK_EXPLODING);
+	if (Plugins == m_Hooks.end())
+	{
+		return false;
+	}
+	for (PluginList::iterator itr = Plugins->second.begin(); itr != Plugins->second.end(); ++itr)
+	{
+		if ((*itr)->OnExploding(a_World, a_ExplosionSize, a_CanCauseFire, a_X, a_Y, a_Z, a_Source, a_SourceData))
 		{
 			return true;
 		}

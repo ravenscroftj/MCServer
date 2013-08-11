@@ -108,7 +108,7 @@ cPlayer::cPlayer(cClientHandle* a_Client, const AString & a_PlayerName)
 
 cPlayer::~cPlayer(void)
 {
-	LOG("Deleting cPlayer \"%s\" at %p, ID %d", m_PlayerName.c_str(), this, GetUniqueID());
+	LOGD("Deleting cPlayer \"%s\" at %p, ID %d", m_PlayerName.c_str(), this, GetUniqueID());
 	
 	SaveToDisk();
 
@@ -777,6 +777,7 @@ void cPlayer::SendMessage(const AString & a_Message)
 
 void cPlayer::TeleportToCoords(double a_PosX, double a_PosY, double a_PosZ)
 {
+	m_LastGroundHeight = (float)a_PosY;
 	SetPosition( a_PosX, a_PosY, a_PosZ );
 
 	m_World->BroadcastTeleportEntity(*this, GetClientHandle());
